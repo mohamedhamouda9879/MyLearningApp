@@ -4,6 +4,7 @@ import 'package:my_learning_app/modules/archived_tasks/archived_tasks_screen.dar
 import 'package:my_learning_app/modules/done_tasks/done_tasks_screen.dart';
 import 'package:my_learning_app/modules/news_tasks/new_tasks_screen.dart';
 import 'package:my_learning_app/shared/cubit/states.dart';
+import 'package:my_learning_app/shared/network/local/cache_helper.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AppCubit extends Cubit<AppStates> {
@@ -39,7 +40,7 @@ class AppCubit extends Cubit<AppStates> {
       print('database created');
       databse
           .execute(
-              'CREATE TABLE tasks (id INTEGER PRIMARY KEY , title TEXT,date TEXT,time TEXT,status TEXT)')
+          'CREATE TABLE tasks (id INTEGER PRIMARY KEY , title TEXT,date TEXT,time TEXT,status TEXT)')
           .then((value) {
         print('table Created');
       }).catchError((error) {
@@ -62,7 +63,7 @@ class AppCubit extends Cubit<AppStates> {
     await database.transaction((txn) async {
       txn
           .rawInsert(
-              'INSERT INTO tasks(title, date, time,status) VALUES("$title","$date","$time","new")')
+          'INSERT INTO tasks(title, date, time,status) VALUES("$title","$date","$time","new")')
           .then((value) {
         emit(AppInsertDatabaseStates());
         getDataFromDatabase(database);
@@ -73,51 +74,63 @@ class AppCubit extends Cubit<AppStates> {
     });
   }
 
-  void getDataFromDatabase(database)  {
-    newtasks=[];
-    donetasks=[];
-    archivedtasks=[];
+  void getDataFromDatabase(database) {
+    newtasks = [];
+    donetasks = [];
+    archivedtasks = [];
     emit(getDatabaseLoadingState());
-     database.rawQuery('SELECT * FROM tasks').then((value) {
-       value.forEach((element) {
-        if(element['status']=='new'){
+    database.rawQuery('SELECT * FROM tasks').then((value) {
+      value.forEach((element) {
+        if (element['status'] == 'new') {
           newtasks.add(element);
-        }else if(element['status']=='done'){
+        } else if (element['status'] == 'done') {
           donetasks.add(element);
-        }else{
+        } else {
           archivedtasks.add(element);
         }
-       });
-       emit(AppGetDatabaseStates());
-     });
+      });
+      emit(AppGetDatabaseStates());
+    });
   }
 
-  void updateData(
-      @required String status,
-      @required int id,
-      )async{
-     database.rawUpdate(
-        'UPDATE tasks SET status = ? WHERE id = ?',
-        ['$status',id],).then((value) {
-          getDataFromDatabase(database);
-          emit(AppUpdateDatabaseStates());
-     });
+  void updateData(@required String status,
+      @required int id,) async {
+    database.rawUpdate(
+      'UPDATE tasks SET status = ? WHERE id = ?',
+      ['$status', id],).then((value) {
+      getDataFromDatabase(database);
+      emit(AppUpdateDatabaseStates());
+    });
   }
-  void DeleteData(
-      @required int id,
-      )async{
+
+  void DeleteData(@required int id,) async {
     database.rawDelete(
-      'DELETE FROM tasks WHERE id = ?',[id]).then((value) {
+        'DELETE FROM tasks WHERE id = ?', [id]).then((value) {
       getDataFromDatabase(database);
       emit(AppDeleteDatabaseStates());
     });
   }
-  void changeBottomSheetState(
-    bool isShow,
-    IconData icon,
-  ) {
+
+  void changeBottomSheetState(bool isShow,
+      IconData icon,) {
     isBottomSheetShowen = isShow;
     fabIcon = icon;
     emit(AppChangeBottonSheetStates());
+  }
+
+  ThemeMode appMode = ThemeMode.dark;
+  bool isDark = false;
+
+  void ChangeAppMode({bool? fromShared}) {
+    if (fromShared != null) {
+      isDark = fromShared;
+      emit(ChangeAppModeState());
+    } else {
+      isDark = !isDark;
+
+      CacheHelper.putBool(key: 'isDark', value: isDark).then((value) {
+        emit(ChangeAppModeState());
+      });
+    }
   }
 }

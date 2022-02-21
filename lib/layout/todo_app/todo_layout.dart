@@ -7,9 +7,8 @@ import 'package:my_learning_app/shared/components/constants.dart';
 import 'package:my_learning_app/shared/cubit/cubit.dart';
 import 'package:my_learning_app/shared/cubit/states.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:my_learning_app/modules/archived_tasks/archived_tasks_screen.dart';
-import 'package:my_learning_app/modules/done_tasks/done_tasks_screen.dart';
-import 'package:my_learning_app/modules/news_tasks/new_tasks_screen.dart';
+import 'package:my_learning_app/modules/todo_app/archived_tasks/archived_tasks_screen.dart';
+import 'package:my_learning_app/modules/todo_app/news_tasks/new_tasks_screen.dart';
 
 class HomeLayout extends StatelessWidget {
   var titleController = TextEditingController();

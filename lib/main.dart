@@ -4,15 +4,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hexcolor/hexcolor.dart';
 import 'package:my_learning_app/layout/news_app/news_layout.dart';
+import 'package:my_learning_app/layout/shop_app/cubit/cubit.dart';
+import 'package:my_learning_app/layout/shop_app/shop_app_layout.dart';
+import 'package:my_learning_app/modules/shop_app/login_screen/shop_login_screen.dart';
 
 import 'package:my_learning_app/shared/bloc_observer.dart';
+import 'package:my_learning_app/shared/components/constants.dart';
 import 'package:my_learning_app/shared/cubit/cubit.dart';
 import 'package:my_learning_app/shared/cubit/states.dart';
 import 'package:my_learning_app/shared/network/local/cache_helper.dart';
 import 'package:my_learning_app/shared/network/remote/dio_helper.dart';
+import 'package:my_learning_app/shared/styles/themes.dart';
 
 import 'layout/news_app/cubit/cubit.dart';
 import 'layout/todo_app/todo_layout.dart';
+import 'modules/shop_app/on_boarding/on_boarding.dart';
 
 void main()async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,23 +28,43 @@ void main()async {
     },
     blocObserver: MyBlocObserver(),
   );
-  DioHelper.init();
+  //DioHelper.init();
+   await DioHelperShopApp.init();
   await CacheHelper.init();
 
   bool? isDark=CacheHelper.getBool(key: 'isDark');
-  runApp( MyApp(isDark!));
+
+  Widget widget;
+  bool onBoarding=CacheHelper.getData( key: 'onBoarding');
+  TOKEN=CacheHelper.getData(key: 'token');
+
+  if(onBoarding!=null){
+    if(TOKEN!=null){
+      widget=ShopLayout();
+    }else{
+      widget=ShopLoginScreen();
+    }
+  }else{
+    widget=OnBoardingScreen();
+  }
+  runApp( MyApp(widget));
+  //isDark!
 }
 
 class MyApp extends StatelessWidget {
 
-  final bool isDark;
-  MyApp(this.isDark);
+  bool isDark=false;
+  //final bool isDark;
+  final Widget startWidget;
+  MyApp(this.startWidget);
+  // MyApp(this.isDark);
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context)=>NewsCubit()..getBusinessData()..getSportsData()..getScienceData(),),
         BlocProvider(create: (BuildContext context)=>AppCubit()..ChangeAppMode(fromShared: isDark),),
+        BlocProvider(create:(BuildContext context)=>ShopCubit()..getHomeData()..getCategories()..getFavorites()..getUserData()),
 
       ],
       child: BlocConsumer<AppCubit,AppStates>(
@@ -46,79 +72,10 @@ class MyApp extends StatelessWidget {
         builder: (context,state){
           return MaterialApp(
             debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-                textTheme: TextTheme(
-                    bodyText1: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black,
-                    )),
-                primarySwatch: Colors.deepOrange,
-                floatingActionButtonTheme: FloatingActionButtonThemeData(
-                  backgroundColor: Colors.deepOrange,
-                ),
-                bottomNavigationBarTheme: BottomNavigationBarThemeData(
-                  type: BottomNavigationBarType.fixed,
-                  selectedItemColor: Colors.deepOrange,
-                  unselectedItemColor: Colors.grey,
-                  elevation: 20.0,
-                  backgroundColor: Colors.white,
-                ),
-                scaffoldBackgroundColor: Colors.white,
-                appBarTheme: AppBarTheme(
-                  titleSpacing: 20.0,
-                    backwardsCompatibility: false,
-                    systemOverlayStyle: SystemUiOverlayStyle(
-                      statusBarColor: Colors.white,
-                      statusBarIconBrightness: Brightness.dark,
-                    ),
-                    backgroundColor: Colors.white,
-                    elevation: 0.0,
-                    iconTheme: IconThemeData(
-                      color: Colors.black,
-                    ),
-                    titleTextStyle: TextStyle(
-                        color: Colors.black,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold))),
-            darkTheme: ThemeData(
-              primarySwatch: Colors.deepOrange,
-              textTheme: TextTheme(
-                  bodyText1: TextStyle(
-                    fontSize: 18.0,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  )),
-              floatingActionButtonTheme: FloatingActionButtonThemeData(
-                backgroundColor: Colors.deepOrange,
-              ),
-              bottomNavigationBarTheme: BottomNavigationBarThemeData(
-                  type: BottomNavigationBarType.fixed,
-                  selectedItemColor: Colors.deepOrange,
-                  unselectedItemColor: Colors.grey,
-                  elevation: 20.0,
-                  backgroundColor: HexColor('333739')),
-              scaffoldBackgroundColor: HexColor('333739'),
-              appBarTheme: AppBarTheme(
-
-                titleSpacing: 20.0,
-                  backwardsCompatibility: false,
-                  systemOverlayStyle: SystemUiOverlayStyle(
-                    statusBarColor: HexColor('333739'),
-                    statusBarIconBrightness: Brightness.light,
-                  ),
-                  backgroundColor: HexColor('333739'),
-                  elevation: 0.0,
-                  iconTheme: IconThemeData(
-                    color: Colors.white,
-                  ),
-                  titleTextStyle: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold)),
-            ),
+            theme: lightTheme,
+            darkTheme: darkTheme,
             themeMode: AppCubit.get(context).isDark?ThemeMode.dark:ThemeMode.light,
-            home: NewsLayout(),
+            home: startWidget,
           );
         },
       ),

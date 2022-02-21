@@ -1,7 +1,9 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:my_learning_app/modules/bmi/bmi_result_screen.dart';
+
+import 'bmi_result_screen.dart';
+
 
 class BMIScreen extends StatefulWidget {
   const BMIScreen({Key? key}) : super(key: key);

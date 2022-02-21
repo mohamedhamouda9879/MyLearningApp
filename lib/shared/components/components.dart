@@ -1,9 +1,12 @@
 import 'package:conditional_builder/conditional_builder.dart';
 import 'package:flutter/material.dart';
-import 'package:my_learning_app/modules/web_view/webview.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:my_learning_app/layout/shop_app/cubit/cubit.dart';
+import 'package:my_learning_app/modules/news_app/web_view/webview.dart';
 import 'dart:io';
 
 import 'package:my_learning_app/shared/cubit/cubit.dart';
+import 'package:my_learning_app/shared/styles/colors.dart';
 
 Widget defaultButton({
   double width = double.infinity,
@@ -26,6 +29,16 @@ Widget defaultButton({
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius), color: background),
     );
+
+Widget defaultTextButton({
+  required VoidCallback function,
+  required String text,
+}) =>TextButton(
+  onPressed:function,
+  child: Text(
+   text.toUpperCase(),
+  ),
+);
 
 Widget defaultFormField({
   required TextEditingController controller,
@@ -171,7 +184,11 @@ Widget tasksBuilder({
       ),
     );
 
-Widget buildArticleItem(article, context,) => InkWell(
+Widget buildArticleItem(
+  article,
+  context,
+) =>
+    InkWell(
       onTap: () {
         NavigateTo(context, WebViewScreen(article['url']));
       },
@@ -234,7 +251,7 @@ Widget myDivider() => Padding(
       ),
     );
 
-Widget ArticleBuilder(list,{isSearch=false}) => ConditionalBuilder(
+Widget ArticleBuilder(list, {isSearch = false}) => ConditionalBuilder(
       condition: list.length > 0,
       builder: (context) => ListView.separated(
           physics: BouncingScrollPhysics(),
@@ -242,7 +259,8 @@ Widget ArticleBuilder(list,{isSearch=false}) => ConditionalBuilder(
               buildArticleItem(list[index], context),
           separatorBuilder: (context, index) => myDivider(),
           itemCount: list.length),
-      fallback: (context) => isSearch?Container():Center(child: CircularProgressIndicator()),
+      fallback: (context) =>
+          isSearch ? Container() : Center(child: CircularProgressIndicator()),
     );
 
 void NavigateTo(context, widget) => Navigator.push(
@@ -250,3 +268,140 @@ void NavigateTo(context, widget) => Navigator.push(
     MaterialPageRoute(
       builder: (context) => widget,
     ));
+
+void NavigateAndFinish(context, widget) => Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+        builder: (context) => widget,
+      ),
+      (Route<dynamic> route) => false,
+    );
+
+
+void showToast({required String message,required ToastStates toastStates})=>Fluttertoast.showToast(
+msg: message,
+toastLength: Toast.LENGTH_LONG,
+gravity: ToastGravity.BOTTOM,
+timeInSecForIosWeb: 5,
+backgroundColor:chooseToastColor(toastStates) ,
+textColor: Colors.white,
+fontSize: 16.0);
+
+enum ToastStates{SUCCESS,EROOR,WARNING}
+Color chooseToastColor(ToastStates states){
+
+  Color color;
+  switch(states){
+    case ToastStates.SUCCESS:
+      color= Colors.green;
+      break;
+    case ToastStates.EROOR:
+      color= Colors.red;
+      break;
+    case ToastStates.WARNING:
+      color= Colors.blue;
+      break;
+  }
+  return color;
+}
+
+Widget buildListProduct(
+    model,
+    context, {
+      bool isOldPrice = true,
+    }) =>
+    Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Container(
+        height: 120.0,
+        child: Row(
+          children: [
+            Stack(
+              alignment: AlignmentDirectional.bottomStart,
+              children: [
+                Image(
+                  image: NetworkImage(model.image),
+                  width: 120.0,
+                  height: 120.0,
+                ),
+                if (model.discount != 0 && isOldPrice)
+                  Container(
+                    color: Colors.red,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 5.0,
+                    ),
+                    child: Text(
+                      'DISCOUNT',
+                      style: TextStyle(
+                        fontSize: 8.0,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            SizedBox(
+              width: 20.0,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    model.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14.0,
+                      height: 1.3,
+                    ),
+                  ),
+                  Spacer(),
+                  Row(
+                    children: [
+                      Text(
+                        model.price.toString(),
+                        style: TextStyle(
+                          fontSize: 12.0,
+                          color: defaultColor,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 5.0,
+                      ),
+                      if (model.discount != 0 && isOldPrice)
+                        Text(
+                          model.oldPrice.toString(),
+                          style: TextStyle(
+                            fontSize: 10.0,
+                            color: Colors.grey,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      Spacer(),
+                      IconButton(
+                        onPressed: () {
+                          ShopCubit.get(context).ChangeFavorites(model.id);
+                        },
+                        icon: CircleAvatar(
+                          radius: 15.0,
+                          backgroundColor:
+                          ShopCubit.get(context).favorites![model.id]!
+                              ? defaultColor
+                              : Colors.grey,
+                          child: Icon(
+                            Icons.favorite_border,
+                            size: 14.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );

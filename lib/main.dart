@@ -6,6 +6,8 @@ import 'package:hexcolor/hexcolor.dart';
 import 'package:my_learning_app/layout/news_app/news_layout.dart';
 import 'package:my_learning_app/layout/shop_app/cubit/cubit.dart';
 import 'package:my_learning_app/layout/shop_app/shop_app_layout.dart';
+import 'package:my_learning_app/modules/bwaq_app/cubit/cubit.dart';
+import 'package:my_learning_app/modules/bwaq_app/notes_screen/notes_screen.dart';
 import 'package:my_learning_app/modules/shop_app/login_screen/shop_login_screen.dart';
 
 import 'package:my_learning_app/shared/bloc_observer.dart';
@@ -14,6 +16,7 @@ import 'package:my_learning_app/shared/cubit/cubit.dart';
 import 'package:my_learning_app/shared/cubit/states.dart';
 import 'package:my_learning_app/shared/network/local/cache_helper.dart';
 import 'package:my_learning_app/shared/network/remote/dio_helper.dart';
+import 'package:my_learning_app/shared/network/remote/dio_helper_bwaq.dart';
 import 'package:my_learning_app/shared/styles/themes.dart';
 
 import 'layout/news_app/cubit/cubit.dart';
@@ -30,6 +33,7 @@ void main()async {
   );
   //DioHelper.init();
    await DioHelperShopApp.init();
+  await DioHelperBwaq.init();
   await CacheHelper.init();
 
   bool? isDark=CacheHelper.getBool(key: 'isDark');
@@ -65,6 +69,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context)=>NewsCubit()..getBusinessData()..getSportsData()..getScienceData(),),
         BlocProvider(create: (BuildContext context)=>AppCubit()..ChangeAppMode(fromShared: isDark),),
         BlocProvider(create:(BuildContext context)=>ShopCubit()..getHomeData()..getCategories()..getFavorites()..getUserData()),
+        BlocProvider(create: (context)=>BwaqCubit()..getNotesData(),),
 
       ],
       child: BlocConsumer<AppCubit,AppStates>(
@@ -75,7 +80,7 @@ class MyApp extends StatelessWidget {
             theme: lightTheme,
             darkTheme: darkTheme,
             themeMode: AppCubit.get(context).isDark?ThemeMode.dark:ThemeMode.light,
-            home: startWidget,
+            home: NotesScreen(),
           );
         },
       ),

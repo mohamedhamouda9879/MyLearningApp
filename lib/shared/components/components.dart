@@ -43,6 +43,7 @@ Widget defaultTextButton({
 Widget defaultFormField({
   required TextEditingController controller,
   required TextInputType type,
+
   ValueChanged<String>? onSubmit,
   ValueChanged<String>? onChange,
   GestureTapCallback? onTap,
@@ -53,6 +54,7 @@ Widget defaultFormField({
   IconData? suffix,
   VoidCallback? suffixPressed,
   bool isClickable = true,
+  int? lines,
 }) =>
     TextFormField(
       controller: controller,
@@ -62,6 +64,7 @@ Widget defaultFormField({
       onFieldSubmitted: onSubmit,
       onChanged: onChange,
       onTap: onTap,
+      maxLines: lines,
       validator: validate,
       decoration: InputDecoration(
         labelText: label,

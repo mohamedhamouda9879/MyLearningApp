@@ -4,7 +4,10 @@
 * v2/top-headlines
 * ?country=us&category=business&apiKey=dc3d106e730c4256b8c275d9da58d090
 * */
-
+/*
+* http://192.236.155.173:55886/
+* notes/getall
+* */
 /*
 * https://newsapi.org/
 * v2/everything
